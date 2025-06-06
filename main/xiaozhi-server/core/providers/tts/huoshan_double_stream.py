@@ -5,6 +5,7 @@ import queue
 import asyncio
 import traceback
 import websockets
+from core.utils.tts import MarkdownCleaner
 from config.logger import setup_logging
 from core.utils import opus_encoder_utils
 from core.utils.util import check_model_key
@@ -270,8 +271,11 @@ class TTSProvider(TTSProviderBase):
                 await handleAbortMessage(self.conn)
                 logger.bind(tag=TAG).error(f"WebSocket连接不存在，终止发送文本")
                 return
+            
+            filtered_text = MarkdownCleaner.clean_markdown(text)
+            
             # 发送文本
-            await self.send_text(self.speaker, text, self.conn.sentence_id)
+            await self.send_text(self.speaker, filtered_text, self.conn.sentence_id)
             return
         except Exception as e:
             logger.bind(tag=TAG).error(f"发送TTS文本失败: {str(e)}")
